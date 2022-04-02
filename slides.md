@@ -151,6 +151,7 @@ layout: dynamic-image
 image: https://api.ixiaowai.cn/api/api.php
 ---
 # bean copy properties
+减少fastjoson转化，大批量的set代码
 - mapstruct https://mapstruct.org/
 - beancopier hutool-core(cglib)
 - spring beanutil 
