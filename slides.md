@@ -147,21 +147,30 @@ PipelineService.queryPipeline
 
 回归测试关注是代码本身是否能编译通过、旧有的逻辑未变是否能够正常回归（优化、添加新功能分支等）<br>冒烟测试针对bug，是否对其他功能模块影响，只能测试一个主要逻辑无法覆盖到所有逻辑
 ---
-layout: center-image
+layout: dynamic-image
+image: https://api.ixiaowai.cn/api/api.php
+---
+# bean copy properties
+- mapstruct https://mapstruct.org/
+- beancopier hutool-core(cglib)
+- spring beanutil 
+
+---
+layout: dynamic-image
 image: https://api.ixiaowai.cn/api/api.php
 ---
 # @validate参数验证
 ---
-layout: center-image
+layout: dynamic-image
 image: https://api.paugram.com/wallpaper/
 ---
 # swagger根据group渲染的
+[https://github.com/meose/springfox-validation-example](https://github.com/meose/springfox-validation-example)
 ---
 layout: dynamic-image
 image: https://img.paulzzh.tech/touhou/random
 ---
 # unit test with testcontainer
-
 ### junit5 fluent api
 ```java
 assertThat(Objects.equals(a, b)).isFalse();
