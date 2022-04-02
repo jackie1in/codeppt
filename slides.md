@@ -60,19 +60,9 @@ DOCKER_HOST=tcp://172.20.23.219:2375
 TESTCONTAINERS_REUSE_ENABLE=true
 ```
 
-### [idea安装插件](https://github.com/ashald/EnvFile)
-
-### vscode
-```json {6|all}
-{
-    "java.format.settings.url": "checkstyle/eclipse-codestyle.xml",
-    "java.format.settings.profile": "P3C-CodeStyle",
-    "java.test.config":{
-        "name": "loca test, need start docker compose",
-        "envFile": "${workspaceFolder}/.env"
-    }
-}
-```
+### [idea安装插件EnvFile](https://github.com/ashald/EnvFile)
+- enbable env file
+- 添加.env文件
 
 ---
 layout: dynamic-image
@@ -95,6 +85,46 @@ cd ~/yinhai/my-devops
 ./gradlew cleanEclipse eclipse
 code .
 ``` 
+---
+layout: center-image
+image: ./1648890204483.jpg
+---
+可直接点击bootRun、test、mbGenerator启动、测试、生成mybatis代码，同样命令行也是生效的
+---
+layout: dynamic-image
+image: https://img.paulzzh.tech/touhou/random
+---
+```groovy {3|all}
+test {
+    if(env.isPresent("DOCKER_HOST")){
+        environment(env.allVariables)
+    }
+    useJUnitPlatform()
+}
+bootRun {
+    if(env.isPresent("DOCKER_HOST")){
+        environment(env.allVariables)
+    }
+}
+```
+
+```groovy
+mybatisGenerator {
+    verbose = true
+    mybatisProperties = [
+        'jdbcUrlPrefix'  : 'jdbc:postgresql://172.20.23.34:5432',
+        'jdbcDriverClass': 'org.postgresql.Driver',
+        'jdbcUsername'   : 'postgres',
+        'jdbcPassword'   : 'ta3.db@pgsql',
+        'baseDir'        :  project.projectDir.absolutePath
+    ]
+    dependencies {
+        mybatisGenerator "org.postgresql:postgresql:${postgresqlVersion}"
+        mybatisGenerator "org.mybatis.generator:mybatis-generator-core:1.4.0"
+    }
+    configFile = project.projectDir.absolutePath + "${s}src${s}main${s}resources${s}generatorConfig.xml"
+}
+```
 
 ---
 layout: dynamic-image
@@ -166,7 +196,20 @@ layout: dynamic-image
 image: https://api.paugram.com/wallpaper/
 ---
 # swagger根据group渲染的
-[https://github.com/meose/springfox-validation-example](https://github.com/meose/springfox-validation-example)
+- [springfox](https://github.com/meose/springfox)
+- [springfox-validation-example](https://github.com/meose/springfox-validation-example)
+```java
+@JsonView(INFO.class)
+@ApiOperation(value = "Add category")
+@PostMapping(value = "/category", consumes = MediaType.APPLICATION_JSON_VALUE,
+              produces = MediaType.APPLICATION_JSON_VALUE)
+public Category post(@RequestBody @JsonView(POST.class) @Validated(POST.class) Category category) {
+    long categoryId = identity.getAndIncrement();
+    category.setId(categoryId);
+    categories.put(categoryId, category);
+    return category;
+}
+```
 ---
 layout: dynamic-image
 image: https://img.paulzzh.tech/touhou/random
@@ -176,24 +219,57 @@ image: https://img.paulzzh.tech/touhou/random
 ```java
 assertThat(Objects.equals(a, b)).isFalse();
 ```
-### 如何使用testcontainer
+### 实现IPostgresContainer接口
 ```java
-@DevopsTest
 public class UserCenterApplicationTest implements IPostgresContainer {
 }
 ```
+### 导包junit5的
 ```java
-@DBIntegrationTest
-public class ProjectGroupPermissionServiceImplTest implements IPostgresContainer {
-  // 需要去mock我们的service设置模拟数据，如果不想去模拟本地service可以使用@DevopsTest
+import org.junit.jupiter.api.Test;
+```
+---
+layout: dynamic-image
+image: https://img.paulzzh.tech/touhou/random
+---
+# @DevopsTest
+```java
+// 相当于@SpringBootTest
+@DevopsTest
+public class UserCenterApplicationTest implements IPostgresContainer {
+    @Test
+    void contextLoads() {}
 }
 ```
-### 配合env实现单元测试
-```groovy {3|all}
-test {
-    if(env.isPresent("DOCKER_HOST")){
-        environment(env.allVariables)
+---
+---
+```java
+@DBIntegrationTest // 相当于@MybatisTest
+public class PipelineServiceTest implements IPostgresContainer {
+  // 需要去mock我们的service设置模拟数据，如果不想去模拟本地service可以使用@DevopsTest
+    @TestConfiguration
+    static class InnerConfiguration {
+        @MockBean
+        private ProjectFegin projectFegin;
+        ...
+        @Bean
+        public IPipelineService pipelineService() {
+            return new PipelineService();
+        }
     }
-    useJUnitPlatform()
+    @Autowired
+    IPipelineService pipelineService;
+    @Autowired
+    PipelineAuthorityMapperExtend pipelineAuthorityMapperExtend;
+    @Autowired
+    private ProjectFegin projectFegin;
+    @Test
+    void testCreatePipeline_project_manager_not_contain_current_user() {
+        when(projectFegin.getProjectUserByProjectId(anyString()))
+            .thenReturn(PipelineEntityUtil.projectMangerMockData(false));
+        Pipeline p = pipelineService.createPipeline(PipelineEntityUtil.createPipelineParam(), PipelineEntityUtil.CURRENT_USER);
+        assertThat(pipelineMapper.selectByPrimaryKey(p.getPipelineId())).isNotNull();
+        assertThat(pipelineAuthorityMapperExtend.selectByPipelineId(p.getPipelineId())).size().isEqualTo(2);
+    }
 }
 ```

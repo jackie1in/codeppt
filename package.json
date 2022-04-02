@@ -11,5 +11,8 @@
     "@slidev/theme-seriph": "*",
     "slidev-theme-light-icons": "^1.0.2"
   },
-  "name": "slidev"
+  "name": "slidev",
+  "devDependencies": {
+    "playwright-chromium": "^1.20.2"
+  }
 }
